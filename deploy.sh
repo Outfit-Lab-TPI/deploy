@@ -1,22 +1,25 @@
 #!/bin/bash
 
-# Carga las variables de entorno desde el archivo .env
-export $(grep -v '^#' .env | xargs)
+# NOTA: Ya no se usa 'export'. Docker Compose se encarga de las variables con --env-file.
 
 # Loguearse a GitHub Container Registry
-# Se asume que ya has hecho 'docker login ghcr.io' manualmente una vez
-# o que estás usando un token.
-echo $CR_PAT | docker login ghcr.io -u YOUR_GITHUB_USERNAME --password-stdin
+# La variable CR_PAT se lee desde el .env gracias a --env-file
+echo "Iniciando sesión en ghcr.io..."
+CR_PAT_VALUE=$(grep CR_PAT .env | cut -d '=' -f2)
+echo $CR_PAT_VALUE | docker login ghcr.io -u outfit-lab-tpi --password-stdin
 
 # Detiene los contenedores actuales si están corriendo
-docker-compose down
+echo "Deteniendo contenedores existentes..."
+docker compose --env-file .env down
 
 # Trae las últimas imágenes de los servicios definidos
-docker-compose pull
+echo "Descargando las últimas imágenes..."
+docker compose --env-file .env pull
 
 # Levanta los servicios en modo detached
-docker-compose up -d
+echo "Iniciando nuevos contenedores..."
+docker compose --env-file .env up -d
 
-# Muestra los logs de watchtower para confirmar que está corriendo
-echo "Deployment finished. Watchtower is monitoring for new images."
-docker logs watchtower
+# Muestra el estado de los contenedores para confirmar
+echo "¡Despliegue finalizado! Verificando estado de los contenedores..."
+docker compose --env-file .env ps

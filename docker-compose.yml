@@ -1,34 +1,15 @@
-version: '3.8'
-
 services:
-  postgres:
-    image: postgres:15-alpine
-    container_name: postgres_db
-    restart: unless-stopped
-    env_file:
-      - ./.env
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $POSTGRES_USER -d $POSTGRES_DB"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
   backend:
-    image: ghcr.io/Outfit-Lab-TPI/backend-tpi:${IMAGE_TAG:-latest}
+    image: ghcr.io/outfit-lab-tpi/backend-tpi:${IMAGE_TAG:-latest}
     container_name: backend_app
     restart: unless-stopped
     env_file:
       - ./.env
-    depends_on:
-      postgres:
-        condition: service_healthy
+    ports:
+      - "8080:8080"
 
   frontend:
-    image: ghcr.io/Outfit-Lab-TPI/frontend-tpi:${IMAGE_TAG:-latest}
+    image: ghcr.io/outfit-lab-tpi/frontend-tpi:${IMAGE_TAG:-latest}
     container_name: frontend_app
     restart: unless-stopped
 
@@ -41,12 +22,22 @@ services:
       - "443:443"
     volumes:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf
-      # Para HTTPS con Let's Encrypt, necesitarás montar estos volúmenes:
-      # - ./certbot/conf:/etc/letsencrypt
-      # - ./certbot/www:/var/www/certbot
+      # Volúmenes compartidos con Certbot
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
     depends_on:
       - backend
       - frontend
+
+  certbot:
+    image: certbot/certbot
+    container_name: certbot
+    volumes:
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+    # El comando se ejecutará manualmente la primera vez
+    # y luego se puede configurar para renovar automáticamente.
+    command: renew
 
   watchtower:
     image: containrrr/watchtower
@@ -54,8 +45,10 @@ services:
     restart: unless-stopped
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-    command: --schedule "0 5 * * *" --cleanup # Revisa actualizaciones todos los días a las 5 AM
+    command: --schedule "0 5 * * *" --cleanup
 
 volumes:
-  postgres_data:
+  certbot_conf:
+    driver: local
+  certbot_www:
     driver: local
