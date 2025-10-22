@@ -48,8 +48,13 @@ if [ $? -eq 0 ]; then
     echo ""
     echo "✅ Certificado obtenido exitosamente!"
     echo ""
-    echo "📝 Paso 3: Reiniciando nginx para aplicar SSL..."
-    docker compose restart nginx-proxy
+    echo "📝 Paso 3: Cambiando a configuración HTTPS..."
+    
+    # Cambiar docker-compose.yml para usar nginx.conf en lugar de nginx-simple.conf
+    sed -i 's|./nginx-simple.conf:/etc/nginx/conf.d/default.conf|./nginx.conf:/etc/nginx/conf.d/default.conf|' docker-compose.yml
+    
+    echo "📝 Paso 4: Reiniciando nginx con SSL..."
+    docker compose up -d nginx-proxy
     
     echo ""
     echo "🎉 ¡Listo! Tu sitio debería estar accesible en:"
@@ -57,6 +62,7 @@ if [ $? -eq 0 ]; then
     echo "   https://www.$DOMAIN"
     echo ""
     echo "📌 El certificado se renovará automáticamente."
+    echo "📌 HTTP (puerto 80) ahora redirige a HTTPS."
 else
     echo ""
     echo "❌ Error al obtener el certificado."
