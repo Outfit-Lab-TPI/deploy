@@ -7,7 +7,7 @@ echo "=============================================="
 
 # Variables
 DOMAIN="outfitlab.com.ar"
-EMAIL="tu-email@example.com"  # CAMBIA ESTO por tu email real
+EMAIL="tpi8bits@gmail.com"  # CAMBIA ESTO por tu email real
 
 echo ""
 echo "⚠️  IMPORTANTE: Antes de continuar, asegúrate de que:"
