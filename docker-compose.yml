@@ -45,6 +45,12 @@ services:
     restart: unless-stopped
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+    env_file:
+      - ./.env
+    environment:
+      - WATCHTOWER_REGISTRY_AUTH=true
+      - WATCHTOWER_REGISTRY_USER=outfit-lab-tpi
+      - WATCHTOWER_REGISTRY_PASSWORD=${CR_PAT}
     command: --interval 300 --cleanup
 
 volumes:
