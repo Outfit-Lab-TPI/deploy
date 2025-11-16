@@ -45,7 +45,7 @@ services:
     restart: unless-stopped
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-    command: --schedule "0 5 * * *" --cleanup
+    command: --interval 300 --cleanup
 
 volumes:
   certbot_conf:
